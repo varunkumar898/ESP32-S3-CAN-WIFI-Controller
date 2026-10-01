@@ -1,0 +1,1982 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32-S3 Controller Settings</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --blue: #1e40af;
+      --green: #15803d;
+      --orange: #c2410c;
+      --pink: #be185d;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #334155;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    /* Premium Title */
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@800&display=swap');
+
+    h1 {
+      text-align: center;
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.8rem;
+      margin: 20px 0 10px;
+      background: linear-gradient(to right, #1e3a8a, #3b82f6, #1e3a8a);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 900;
+      animation: shine 3s linear infinite;
+      white-space: nowrap;
+      /* Prevent wrapping */
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.8rem;
+        letter-spacing: 1px;
+      }
+    }
+
+    @keyframes shine {
+      to {
+        background-position: 200% center;
+      }
+    }
+
+    .btn-success {
+      background-color: #10b981 !important;
+      color: white !important;
+      transition: 0.3s;
+      transform: scale(1.02);
+    }
+
+    h2 {
+      text-align: center;
+      color: #64748b;
+      font-size: 1.1rem;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 15px;
+      font-weight: 600;
+    }
+
+    /* Tabs */
+    .switch-tabs {
+      display: flex;
+      background: #e2e8f0;
+      padding: 4px;
+      border-radius: 12px;
+      margin: 0 20px 20px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      text-align: center;
+      padding: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 8px;
+      color: #64748b;
+      transition: 0.2s;
+    }
+
+    .tab-btn.active {
+      background: white;
+      color: var(--primary);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Dashboard */
+    .dashboard {
+      background: #1e293b;
+      color: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin: 0 20px 20px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .dash-main {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .lbl {
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .val-big {
+      font-family: monospace;
+      font-size: clamp(1.8rem, 6vw, 3rem);
+      font-weight: 700;
+      color: #60a5fa;
+      line-height: 1.2;
+      text-shadow: 0 0 20px rgba(37, 99, 235, 0.3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding: 0 10px;
+    }
+
+    .dash-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      border-top: 1px solid #334155;
+      padding-top: 20px;
+    }
+
+    .dash-item {
+      text-align: center;
+    }
+
+    .val-med {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #34d399;
+      font-family: monospace;
+    }
+
+    .val-sub {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      font-family: monospace;
+    }
+
+    .zero-box {
+      display: flex;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .zero-box input {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid #475569;
+      color: white;
+    }
+
+    /* Tables & Forms */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th {
+      background: #f8fafc;
+      padding: 12px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #64748b;
+      font-weight: 700;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #f1f5f9;
+      text-align: center;
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 12px;
+    }
+
+    .field-row label {
+      flex: 1;
+      font-weight: 600;
+      color: #475569;
+      font-size: 0.95rem;
+    }
+
+    input,
+    select {
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 1rem;
+      width: 100%;
+      font-weight: 500;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 0.95rem;
+      text-align: center;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px);
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-save {
+      background: #0f172a;
+      color: white;
+      width: auto;
+      min-width: 80px;
+    }
+
+    .btn-nav {
+      background: white;
+      border: 2px solid #e2e8f0;
+      color: var(--text);
+      margin-top: 20px;
+    }
+
+    /* Compact Header Toggle */
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: rgba(255, 255, 255, 0.3);
+      transition: .3s;
+      border-radius: 34px;
+      border: 2px solid transparent;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 1px;
+      bottom: 1px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    input:checked+.slider {
+      background-color: rgba(255, 255, 255, 0.9);
+    }
+
+    input:checked+.slider:before {
+      transform: translateX(20px);
+      background-color: var(--green);
+    }
+
+    /* Body Toggle (Dark) */
+    .body-toggle .slider {
+      background-color: #cbd5e1;
+    }
+
+    .body-toggle input:checked+.slider {
+      background-color: var(--green);
+    }
+
+    .body-toggle input:checked+.slider:before {
+      background-color: white;
+    }
+
+    /* Premium HUD Switch (Anemo) */
+    .hud-switch {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+      max-width: 260px;
+      height: 44px;
+      margin-top: 5px;
+    }
+
+    .hud-switch input {
+      display: none;
+    }
+
+    .hud-track {
+      position: absolute;
+      inset: 0;
+      background: #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px;
+      border: 2px solid #cbd5e1;
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: #94a3b8;
+      transition: 0.3s;
+    }
+
+    .hud-knob {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      bottom: 4px;
+      width: 50%;
+      background: white;
+      border-radius: 6px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      transition: 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    }
+
+    .hud-txt {
+      flex: 1;
+      text-align: center;
+      z-index: 2;
+      transition: 0.3s;
+    }
+
+    .hud-switch input:checked+.hud-track {
+      border-color: var(--green);
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .hud-switch input:checked+.hud-track .hud-knob {
+      transform: translateX(100%) translateX(-8px);
+      background: var(--green);
+    }
+
+    .hud-switch input:checked+.hud-track .hud-txt.on {
+      color: white;
+    }
+
+    .hud-switch input:checked+.hud-track .hud-txt.off {
+      color: #86efac;
+    }
+
+    /* Config Cards */
+    .config-grid {
+      display: grid;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .card {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .card-header {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: white;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .card-header svg {
+      width: 24px;
+      height: 24px;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+
+    .card-body {
+      padding: 20px;
+      background: white;
+    }
+
+    .head-blue {
+      background: linear-gradient(135deg, #3b82f6, #1e40af);
+    }
+
+    .head-green {
+      background: linear-gradient(135deg, #10b981, #065f46);
+    }
+
+    .head-orange {
+      background: linear-gradient(135deg, #f97316, #9a3412);
+    }
+
+    .head-pink {
+      background: linear-gradient(135deg, #ec4899, #9d174d);
+    }
+
+    /* ATP Axis grid */
+    .axis-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .axis-box {
+      background: #f8fafc;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .axis-title {
+      font-weight: 700;
+      color: #64748b;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 5px;
+    }
+
+    .reading {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+    }
+
+    /* Toast */
+    #toast {
+      visibility: hidden;
+      min-width: 250px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 16px;
+      position: fixed;
+      z-index: 100;
+      left: 50%;
+      bottom: 30px;
+      transform: translateX(-50%);
+      font-weight: 600;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+      transition: bottom 0.3s, opacity 0.3s;
+      opacity: 0;
+    }
+
+    #toast.show {
+      visibility: visible;
+      bottom: 50px;
+      opacity: 1;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    /* Mobile responsive for ATP axis grid */
+    @media (max-width: 600px) {
+      .axis-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .axis-box {
+        padding: 12px;
+      }
+
+      .axis-box>div:last-child {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .axis-box input {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .axis-box .btn-save {
+        width: 100%;
+      }
+
+      .field-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+
+      .field-row label {
+        margin-bottom: 4px;
+      }
+
+      .field-row>div,
+      .field-row>input,
+      .field-row>select {
+        width: 100% !important;
+      }
+    }
+
+    /* Floating Action Button */
+    .floating-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2563eb, #1e40af);
+      color: white;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+      cursor: pointer;
+      z-index: 1000;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      opacity: 0;
+      transform: scale(0.3) translateY(40px);
+      pointer-events: none;
+      padding: 0;
+    }
+
+    .floating-btn.show {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+      pointer-events: auto;
+    }
+
+    .floating-btn:hover {
+      transform: scale(1.1) rotate(15deg);
+      box-shadow: 0 15px 30px rgba(37, 99, 235, 0.6);
+      background: linear-gradient(135deg, #3b82f6, #1e3a8a);
+    }
+
+    .floating-btn:active {
+      transform: scale(0.9);
+    }
+
+    .floating-btn svg {
+      width: 32px;
+      height: 32px;
+      fill: currentColor;
+    }
+
+      .field-row>div,
+      .field-row>input,
+      .field-row>select {
+        width: 100% !important;
+      }
+    }
+
+    /* Relay Control Center - Mobile Friendly Redesign */
+    .relay-matrix { background: white; border-radius: 12px; }
+    .relay-item {
+      display: flex;
+      flex-direction: column;
+      padding: 18px 20px;
+      border-bottom: 1px solid #f1f5f9;
+      background: white;
+    }
+    .relay-item:last-child { border-bottom: none; }
+    .relay-label {
+      font-weight: 800;
+      color: #1e293b;
+      margin-bottom: 12px;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .relay-btn-grid { display: flex; gap: 10px; }
+    .r-chip {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      background: #f8fafc;
+      color: #64748b;
+      font-size: 0.8rem;
+      font-weight: 800;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      position: relative;
+    }
+    .r-chip::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: #cbd5e1;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+    .r-chip.active {
+      border-color: #059669;
+      background: #ecfdf5;
+      color: #059669;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.15);
+    }
+    .r-chip.active::before {
+      background: #059669;
+      box-shadow: 0 0 8px #059669;
+    }
+    .r-chip:active { transform: scale(0.95); }
+
+    #relay-status-bar {
+      padding: 12px 20px;
+      background: #f1f5f9;
+      border-top: 1px solid #e2e8f0;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 45px;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      background: #2563eb;
+      border-radius: 50%;
+      display: none;
+    }
+    .status-dot.pulse {
+      display: block;
+      animation: pulse-ring 1.5s infinite;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.8); opacity: 1; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+
+    @media (max-width: 480px) {
+      .relay-item { padding: 15px; }
+      .relay-btn-grid { gap: 6px; }
+      .r-chip { padding: 10px 5px; font-size: 0.75rem; }
+    }
+
+    /* Back Button Style */
+    .back-nav {
+      background: #f8fafc;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--primary);
+      font-weight: 800;
+      border-bottom: 1px solid #e2e8f0;
+      transition: 0.3s;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .back-nav:hover {
+      background: #eff6ff;
+      color: var(--blue);
+      padding-left: 25px;
+    }
+    .back-nav svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+    }
+
+    /* Sensor Channel Assignment Card */
+    .sensor-map-box {
+      grid-column: 1 / -1;
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 14px;
+      margin: 0 0 16px 0;
+      padding: 18px 20px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+    }
+    .sensor-map-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .sensor-map-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 1rem;
+      color: #1e293b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .sensor-map-title svg {
+      width: 22px;
+      height: 22px;
+      color: var(--primary);
+    }
+    .sensor-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .sensor-label {
+      font-weight: 700;
+      color: #334155;
+      font-size: 0.95rem;
+    }
+    .channel-toggle-group {
+      display: flex;
+      background: #e2e8f0;
+      padding: 3px;
+      border-radius: 8px;
+      gap: 4px;
+    }
+    .chan-btn {
+      padding: 8px 16px;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      color: #64748b;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .chan-btn:hover {
+      color: #1e293b;
+    }
+    .chan-btn.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+    }
+    .sensor-mapping-preview {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 540px) {
+      .sensor-mapping-preview {
+        grid-template-columns: 1fr;
+      }
+      .sensor-toggle-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .channel-toggle-group {
+        width: 100%;
+      }
+      .chan-btn {
+        flex: 1;
+        text-align: center;
+      }
+    }
+    .map-chip {
+      background: white;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+    }
+    .map-chip svg {
+      width: 16px;
+      height: 16px;
+      color: #94a3b8;
+    }
+    .chip-sensor {
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .chip-hook {
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      letter-spacing: 0.5px;
+    }
+    .hook-main {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+    .hook-aux {
+      background: #f0fdf4;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- MAIN CONTAINER -->
+  <div class="container">
+    <a href="/" class="back-nav">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 19l-7-7 7-7" />
+      </svg>
+      Return to Dashboard
+    </a>
+    <h1 onclick="secret()" style="cursor: default; user-select: none;">ESP32-S3 Controller</h1>
+    <h2>System Calibration</h2>
+
+    <!-- PAGE: CALIBRATION -->
+    <div id="page-cal" class="page active">
+
+      <!-- Hook Switcher -->
+      <div class="switch-tabs">
+        <div id="tab-main" class="tab-btn active" onclick="setHook('main')">MAIN HOOK</div>
+        <div id="tab-aux" class="tab-btn" onclick="setHook('aux')">AUX HOOK</div>
+      </div>
+
+      <!-- Dashboard -->
+      <div class="dashboard">
+        <div class="dash-main">
+          <div class="lbl">Raw Sensor Count</div>
+          <div id="disp-raw" class="val-big">0</div>
+        </div>
+        <div class="dash-grid">
+          <div class="dash-item">
+            <div class="lbl">Current Load (Selected Hook)</div>
+            <div id="disp-load" class="val-med">0.00 T</div>
+          </div>
+
+          <div class="dash-item">
+            <div class="lbl">Counts Per Ton</div>
+            <div id="disp-cpt" class="val-sub">0</div>
+          </div>
+
+          <!-- ✅ NEW TOTAL LOAD DISPLAY -->
+          <div class="dash-item" style="grid-column: span 2;">
+            <div class="lbl">Total Load (Main + Aux)</div>
+            <div id="totalLoadWeb" class="val-big" style="font-size:2rem; color:#fbbf24;">0.00 T</div>
+          </div>
+        </div>
+
+
+        <div class="zero-box">
+          <input type="number" id="noload-val" placeholder="No Load Count">
+          <button class="btn btn-primary" style="width:auto;" onclick="saveNoLoad()">Set Zero</button>
+        </div>
+      </div>
+
+      <div style="padding: 0 20px;">
+        <div style="text-align:center; margin-bottom:20px;">
+          <div style="font-weight:700; color:#475569; margin-bottom:8px;">Decimal Precision</div>
+          <label class="hud-switch" style="max-width:200px;">
+            <input type="checkbox" id="dec-mode" onchange="toggleDecimal()">
+            <div class="hud-track">
+              <span class="hud-txt off">0.0</span>
+              <div class="hud-knob"></div>
+              <span class="hud-txt on">0.00</span>
+            </div>
+          </label>
+        </div>
+
+        <div class="field-row">
+          <label>Number of Test Loads</label>
+          <input type="number" id="num-loads" value="1" min="1" max="4" style="width:80px"
+            oninput="updateTableVisibility()">
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Raw Count</th>
+              <th>Actual (Ton)</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="load-tbody"></tbody>
+        </table>
+
+        <div style="display:flex; gap:10px; margin-top:30px;">
+          <button class="btn btn-primary" onclick="finishCalibration()">Finish & Save All</button>
+          <button class="btn btn-danger" onclick="resetHook()">Reset Hook</button>
+        </div>
+
+        <button class="btn btn-nav" onclick="nav('config')">Go to Configuration</button>
+      </div>
+    </div>
+
+    <!-- PAGE: CONFIGURATION -->
+    <div id="page-config" class="page">
+      <div class="config-grid">
+
+        <!-- SENSOR CHANNEL ASSIGNMENT CARD -->
+        <div class="sensor-map-box">
+          <div class="sensor-map-header">
+            <div class="sensor-map-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 7h-9M14 17H5M17 4l3 3-3 3M7 14l-3 3 3 3"/>
+              </svg>
+              <span>Sensor Channel Assignment</span>
+            </div>
+          </div>
+
+          <div class="sensor-toggle-container">
+            <div class="sensor-toggle-row">
+              <span class="sensor-label">ADS1232 Load Cell Channel:</span>
+              <div class="channel-toggle-group">
+                <button type="button" id="btn-ads-main" class="chan-btn active" onclick="setSensorChannel('main')">MAIN HOOK</button>
+                <button type="button" id="btn-ads-aux" class="chan-btn" onclick="setSensorChannel('aux')">AUX HOOK</button>
+              </div>
+            </div>
+
+            <div class="sensor-mapping-preview">
+              <div class="map-chip" id="chip-ads">
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                  <span class="chip-sensor">ADS1232 (Load Cell 1)</span>
+                  <span style="font-size:0.75rem; color:#64748b;">Count: <strong id="chip-ads-count" class="chip-count-val">0</strong></span>
+                </div>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <span class="chip-hook hook-main" id="chip-ads-hook">MAIN HOIST</span>
+              </div>
+              <div class="map-chip" id="chip-hx">
+                <div style="display:flex; flex-direction:column; gap:2px;">
+                  <span class="chip-sensor">HX717 (Load Cell 2)</span>
+                  <span style="font-size:0.75rem; color:#64748b;">Count: <strong id="chip-hx-count" class="chip-count-val" style="color:#16a34a;">0</strong></span>
+                </div>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <span class="chip-hook hook-aux" id="chip-hx-hook">AUX HOIST</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAIN HOOK CONFIG -->
+        <div class="card">
+          <div class="card-header head-blue">
+            <span><svg viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M12 2C13.1 2 14 2.9 14 4V13C14 14.1 13.1 15 12 15C10.9 15 10 14.1 10 13V4C10 2.9 10.9 2 12 2M7 16H17V18H7V16Z" />
+              </svg> Main Hook Configuration</span>
+          </div>
+          <div class="card-body">
+            <div style="margin-bottom:15px; background:#f1f5f9; padding:10px; border-radius:10px; text-align:center;">
+              <div style="font-weight:700; color:#475569; margin-bottom:5px;">Main Hook Status</div>
+              <label class="hud-switch">
+                <input type="checkbox" id="m-enable" onchange="saveConfig('main', false, this)">
+                <div class="hud-track">
+                  <span class="hud-txt off">HOOK DISABLED</span>
+                  <div class="hud-knob"></div>
+                  <span class="hud-txt on">HOOK ENABLED</span>
+                </div>
+              </label>
+            </div>
+
+            <div style="margin: 15px 0;">
+              <div style="font-weight:700; color:#475569; margin-bottom:5px;">Overload Alarm</div>
+              <label class="hud-switch">
+                <input type="checkbox" id="m-alarm" onchange="saveConfig('main', false, this)">
+                <div class="hud-track">
+                  <span class="hud-txt off">ALARM OFF</span>
+                  <div class="hud-knob"></div>
+                  <span class="hud-txt on">ALARM ON</span>
+                </div>
+              </label>
+            </div>
+            <div class="field-row"><label>Max Capacity (Ton)</label><input type="number" id="m-cap"></div>
+            <div class="field-row"><label>Overload Limit (%)</label><input type="number" id="m-lim"></div>
+            <button class="btn btn-primary" onclick="saveConfig('main', true, this)">Save Main Settings</button>
+          </div>
+        </div>
+
+        <!-- AUX HOOK CONFIG -->
+        <div class="card">
+          <div class="card-header head-green">
+            <span><svg viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2M11 7H13V13H11V7M11 15H13V17H11V15Z" />
+              </svg> Aux Hook Configuration</span>
+          </div>
+          <div class="card-body">
+            <div style="margin-bottom:15px; background:#f1f5f9; padding:10px; border-radius:10px; text-align:center;">
+              <div style="font-weight:700; color:#475569; margin-bottom:5px;">Aux Hook Status</div>
+              <label class="hud-switch">
+                <input type="checkbox" id="a-enable" onchange="saveConfig('aux', false, this)">
+                <div class="hud-track">
+                  <span class="hud-txt off">HOOK DISABLED</span>
+                  <div class="hud-knob"></div>
+                  <span class="hud-txt on">HOOK ENABLED</span>
+                </div>
+              </label>
+            </div>
+
+            <div style="margin: 15px 0;">
+              <div style="font-weight:700; color:#475569; margin-bottom:5px;">Overload Alarm</div>
+              <label class="hud-switch">
+                <input type="checkbox" id="a-alarm" onchange="saveConfig('aux', false, this)">
+                <div class="hud-track">
+                  <span class="hud-txt off">ALARM OFF</span>
+                  <div class="hud-knob"></div>
+                  <span class="hud-txt on">ALARM ON</span>
+                </div>
+              </label>
+            </div>
+            <div class="field-row"><label>Max Capacity (Ton)</label><input type="number" id="a-cap"></div>
+            <div class="field-row"><label>Overload Limit (%)</label><input type="number" id="a-lim"></div>
+            <button class="btn btn-primary" onclick="saveConfig('aux', true, this)">Save Aux Settings</button>
+          </div>
+        </div>
+
+        <!-- ROPE CONFIG -->
+        <div class="card">
+          <div class="card-header head-orange">
+            <span><svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M4 4H20V6H4V4M4 18H20V20H4V18M11 8H13V16H11V8Z" />
+              </svg> Rope Slack</span>
+          </div>
+          <div class="card-body">
+            <div style="margin-bottom:15px">
+              <div style="font-weight:700; color:#475569; margin-bottom:5px;">Rope Slack System</div>
+              <label class="hud-switch">
+                <input type="checkbox" id="rope-sw" onchange="saveSwitch('rope', this)">
+                <div class="hud-track">
+                  <span class="hud-txt off">DISABLED</span>
+                  <div class="hud-knob"></div>
+                  <span class="hud-txt on">ENABLED</span>
+                </div>
+              </label>
+            </div>
+            <div class="field-row">
+              <label>Slack Variation Limit</label>
+              <div style="display:flex; gap:10px; flex: 2;">
+                <input type="number" id="rope-var">
+                <button class="btn btn-save"
+                  onclick="saveVal('saveRope?variation', 'rope-var', 'Slack Limit', this)">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ANEMOMETER CONFIG -->
+        <div class="card">
+          <div class="card-header head-green">
+            <span><svg viewBox="0 0 24 24" fill="currentColor">
+                <path
+                  d="M12,18C13.1,18 14,18.9 14,20A2,2 0 0,1 12,22A2,2 0 0,1 10,20H2V18H12M15,10C16.1,10 17,10.9 17,12A2,2 0 0,1 15,14H2V12H15A2,2 0 0,1 17,10M19,6C20.1,6 21,6.9 21,8A2,2 0 0,1 19,10H2V8H19A2,2 0 0,1 21,6Z" />
+              </svg> Anemometer</span>
+          </div>
+          <div class="card-body">
+            <div style="margin-bottom:15px">
+              <div style="font-weight:700; color:#475569; margin-bottom:5px;">Anemometer System</div>
+              <label class="hud-switch">
+                <input type="checkbox" id="wind-sw" onchange="saveSwitch('anemo', this)">
+                <div class="hud-track">
+                  <span class="hud-txt off">DISABLED</span>
+                  <div class="hud-knob"></div>
+                  <span class="hud-txt on">ENABLED</span>
+                </div>
+              </label>
+            </div>
+
+            <div
+              style="background: #f0fdf4; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
+              <div style="color:#15803d; font-weight:700; font-size:0.9rem;">CURRENT WIND SPEED</div>
+              <div id="wind-display" style="color:#166534; font-size:2rem; font-weight:800;">0.00 m/s</div>
+            </div>
+
+            <div style="text-align:center; padding: 15px 0;">
+              <div style="font-weight:700; color:#475569; margin-bottom:8px;">Display Wind Speed on Dashboard</div>
+              <label class="hud-switch">
+                <input type="checkbox" id="wind-hud" onchange="saveSwitch('anemoDisplay', this)">
+                <div class="hud-track">
+                  <span class="hud-txt off">HIDDEN</span>
+                  <div class="hud-knob"></div>
+                  <span class="hud-txt on">VISIBLE</span>
+                </div>
+              </label>
+            </div>
+            <div class="field-row">
+              <label>Wind Speed Limit (m/s)</label>
+              <div style="display:flex; gap:10px; flex: 2;">
+                <input type="number" id="wind-lim">
+                <button class="btn btn-save"
+                  onclick="saveVal('anemo?limit', 'wind-lim', 'Wind Limit', this)">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ATP CONFIG -->
+        <div class="card">
+          <div class="card-header head-pink">
+            <span><svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L2 22H22L12 2M12 6L18.5 19H5.5L12 6Z" />
+              </svg> Anti-Tilt Protection</span>
+          </div>
+          <div class="card-body">
+            <div style="margin-bottom:15px">
+              <div style="font-weight:700; color:#475569; margin-bottom:5px;">Anti-Tilt System</div>
+              <label class="hud-switch">
+                <input type="checkbox" id="atp-sw" onchange="saveSwitch('atp', this)">
+                <div class="hud-track">
+                  <span class="hud-txt off">DISABLED</span>
+                  <div class="hud-knob"></div>
+                  <span class="hud-txt on">ENABLED</span>
+                </div>
+              </label>
+            </div>
+            <div class="axis-grid">
+              <div class="axis-box">
+                <div class="axis-title">X-AXIS MONITOR</div>
+                <div class="reading"><span>Raw Angle:</span> <strong id="raw-x">0</strong></div>
+                <div class="reading"><span>Adjusted:</span> <strong id="adj-x" style="color:var(--primary)">0</strong>
+                </div>
+                <div style="display:flex; gap:5px; margin-top:10px;">
+                  <input id="set-x" placeholder="Max Angle">
+                  <button class="btn btn-save" onclick="saveVal('saveAtp?setX', 'set-x', 'X Limit', this)">Save</button>
+                </div>
+              </div>
+
+              <div class="axis-box">
+                <div class="axis-title">Y-AXIS MONITOR</div>
+                <div class="reading"><span>Raw Angle:</span> <strong id="raw-y">0</strong></div>
+                <div class="reading"><span>Adjusted:</span> <strong id="adj-y" style="color:var(--primary)">0</strong>
+                </div>
+                <div style="display:flex; gap:5px; margin-top:10px;">
+                  <input id="set-y" placeholder="Max Angle">
+                  <button class="btn btn-save" onclick="saveVal('saveAtp?setY', 'set-y', 'Y Limit', this)">Save</button>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn btn-danger" style="margin-top:20px;" onclick="resetAngles()">Calibrate Zero
+              Position</button>
+          </div>
+        </div>
+        <!-- RELAY CONFIGURATION CARD -->
+        <div class="card">
+          <div class="card-header" style="background: linear-gradient(135deg, #1e293b, #0f172a);">
+            <span><svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7,15H9V17H7V15M11,15H13V17H11V15M15,15H17V17H15V15M19,15H21V17H19V15M3,15H5V17H3V15M7,19H9V21H7V19M11,19H13V21H11V19M15,19H17V21H15V19M19,19H21V21H19V19M3,19H5V21H3V19M7,11H9V13H7V11M11,11H13V13H11V11M15,11H17V13H15V11M19,11H21V13H19V11M3,11H5V13H3V11M7,7H9V9H7V7M11,7H13V9H11V7M15,7H17V9H15V7M19,7H21V9H19V7M3,7H5V9H3V7M7,3H9V5H7V3M11,3H13V5H11V3M15,3H17V5H15V3M19,3H21V5H19V3M3,3H5V5H3V3Z" />
+              </svg> Relay Control Center</span>
+          </div>
+          <div class="card-body" style="padding: 0;">
+            <div id="relay-controls">
+              <!-- Parameters injected by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- DISPLAY AUTO-OFF CONFIG CARD -->
+        <div class="card">
+          <div class="card-header head-orange">
+            <span><svg viewBox="0 0 24 24" fill="currentColor" style="width:24px; vertical-align:middle; margin-right:10px;">
+                <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM9 10h6v2H9z"/>
+              </svg> Display Auto-Off Control</span>
+          </div>
+          <div class="card-body">
+            <div style="margin-bottom:15px; font-weight:600; color:#475569; font-size:0.9rem;">
+              Automatically turns OFF the 7-segment display when weight is below threshold. (Set threshold to 0 to keep display ALWAYS ON)
+            </div>
+            <div class="field-row">
+              <label>Weight Threshold</label>
+              <input type="number" id="disp-thresh-val" step="0.1" min="0" placeholder="e.g. 90">
+            </div>
+            <div class="field-row">
+              <label>Threshold Unit</label>
+              <select id="disp-unit-val">
+                <option value="0">Kg</option>
+                <option value="1">Ton</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label>Auto-Off Delay (1-60 Min)</label>
+              <input type="number" id="disp-delay-val" min="1" max="60" value="5">
+            </div>
+            <button class="btn btn-primary" onclick="saveDispThreshold(this)">Save Display Settings</button>
+          </div>
+        </div>
+
+        <!-- HIDDEN ADMIN TOOLS -->
+        <div id="admin-tools" style="display: none;">
+          <!-- WIFI SETTINGS CONFIG -->
+          <div class="card">
+            <div class="card-header head-orange">
+              <span><svg viewBox="0 0 24 24" fill="currentColor" style="width:24px; vertical-align:middle; margin-right:10px;">
+                <path d="M12,3L2,12H5V20H19V12H22L12,3M12,7.7C14,7.7 15.8,8.5 17.1,9.8L15.7,11.2C14.7,10.3 13.4,9.7 12,9.7C10.6,9.7 9.3,10.3 8.3,11.2L6.9,9.8C8.2,8.5 10,7.7 12,7.7M12,11.7C13,11.7 13.8,12.1 14.4,12.7L13,14.1C12.7,13.8 12.4,13.7 12,13.7C11.6,13.7 11.3,13.8 11,14.1L9.6,12.7C10.2,12.1 11,11.7 12,11.7M12,15.7C12.4,15.7 12.7,15.8 13,16.1L12,17.1L11,16.1C11.3,15.8 11.6,15.7 12,15.7Z" />
+              </svg> WiFi & System Power</span>
+            </div>
+            <div class="card-body">
+              <div style="margin-bottom:15px; font-weight:600; color:#475569;">
+                WiFi Auto-Off (Saves power when no user is connected)
+              </div>
+              <form action="/saveWifiTimeout" method="GET">
+                <div class="field-row">
+                  <label>Auto-Off Timeout (1-60 min)</label>
+                  <input type="number" name="minutes" id="wifi-timeout" min="1" max="60" value="2">
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-bottom:10px">Save Timeout</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- ALPHA FILTER CONFIG -->
+          <div class="card">
+            <div class="card-header head-blue">
+              <span>Alpha Filter (Load Stability)</span>
+            </div>
+            <div class="card-body">
+              <div style="margin-bottom:15px; font-weight:600; color:#475569;">
+                Controls load smoothing (0 = no smoothing, 1 = very slow)
+              </div>
+              <div class="field-row">
+                <label>Alpha Value (0.00 – 1.00)</label>
+                <input type="number" id="alpha-val" step="0.05" min="0" max="1"
+                  oninput="if(this.value > 1) { this.value = 1; showToast('Max alpha is 1.0', 'error'); } else if(this.value < 0) { this.value = 0; showToast('Min alpha is 0.0', 'error'); }">
+              </div>
+              <div class="field-row">
+                <label>Passcode</label>
+                <input type="password" id="alpha-pass" placeholder="****">
+              </div>
+              <button class="btn btn-primary" onclick="saveAlpha()">Save Alpha</button>
+            </div>
+          </div>
+
+          <!-- MASTER RESET -->
+          <div class="card" style="border: 2px solid #ef4444; margin-top: 20px;">
+            <div class="card-header" style="background: linear-gradient(135deg, #ef4444, #991b1b);">
+              <span><svg viewBox="0 0 24 24" fill="currentColor" style="width:24px; vertical-align:middle; margin-right:10px;">
+                  <path d="M12,2C17.5,2 22,6.5 22,12C22,17.5 17.5,22 12,22C6.5,22 2,17.5 2,12C2,6.5 6.5,2 12,2M12,4C7.58,4 4,7.58 4,12C4,16.42 7.58,20 12,20C16.42,20 20,16.42 20,12C20,7.58 16.42,4 12,4M11,7H13V15H11V7M11,17H13V19H11V17Z" />
+                </svg> Master Reset</span>
+            </div>
+            <div class="card-body" style="text-align: center;">
+              <div style="margin-bottom:15px; color:#ef4444; font-weight:600;">
+                WARNING: This will erase ALL settings, calibration data, and configurations. System will restart.
+              </div>
+              <button class="btn btn-danger" onclick="masterReset()">MASTER RESET</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div style="padding:20px; text-align:center;">
+        <button class="btn btn-nav" onclick="nav('cal')">Back to Calibration</button>
+      </div>
+    </div>
+
+  </div>
+  <!-- Floating Nav Buttons -->
+  <button id="floating-config" class="floating-btn show" onclick="nav('config')" title="Go to Configuration">
+    <svg viewBox="0 0 24 24">
+      <path
+        d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11.03L21.54,9.37C21.73,9.22 21.78,8.97 21.68,8.76L19.68,5.3C19.5,5.12 19.33,5.03 19.13,5.03C19.06,5.03 19,5.04 18.94,5.07L16.45,6.07C15.93,5.67 15.36,5.32 14.73,5.08L14.35,2.44C14.32,2.21 14.12,2.05 13.9,2.05H9.9C9.68,2.05 9.48,2.21 9.45,2.44L9.07,5.08C8.44,5.32 7.87,5.67 7.35,6.07L4.86,5.07C4.8,5.04 4.74,5.03 4.67,5.03C4.47,5.03 4.3,5.12 4.22,5.3L2.22,8.76C2.12,8.97 2.17,9.22 2.36,9.37L4.47,11.03C4.43,11.34 4.4,11.67 4.4,12C4.4,12.33 4.43,12.65 4.47,12.97L2.36,14.63C2.17,14.78 2.12,15.03 2.22,15.24L4.22,18.7C4.3,18.88 4.47,18.97 4.67,18.97C4.74,18.97 4.8,18.96 4.86,18.93L7.35,17.93C7.87,18.33 8.44,18.68 9.07,18.92L9.45,21.56C9.48,21.79 9.68,21.95 9.9,21.95H13.9C14.12,21.95 14.32,21.79 14.35,21.56L14.73,18.92C15.36,18.68 15.93,18.33 16.45,17.93L18.94,18.93C19,18.96 19.06,18.97 19.13,18.97C19.33,18.97 19.5,18.88 19.68,18.7L21.68,15.24C21.78,15.03 21.73,14.78 21.54,14.63L19.43,12.97Z" />
+    </svg>
+  </button>
+
+  <button id="floating-back" class="floating-btn" onclick="nav('cal')" title="Back to Calibration">
+    <svg viewBox="0 0 24 24">
+      <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" />
+    </svg>
+  </button>
+
+  <div id="toast">Saved Successfully</div>
+  <script>
+    // --- CORE UTILS ---
+    const $ = (id) => document.getElementById(id);
+    
+    // --- STANDALONE PREVIEW MOCK API ---
+    let mockSwap = false;
+    let mockRawAds = 284150;
+    let mockRawHx = 874920;
+    const api = async (url) => {
+      console.log('[MOCK API]', url);
+      if (url.startsWith('/getSensorMap')) {
+        const adsCount = !mockSwap ? mockRawAds : mockRawHx;
+        const hxCount = !mockSwap ? mockRawHx : mockRawAds;
+        return JSON.stringify({
+          swap: mockSwap,
+          ads1232: mockSwap ? 'AUX' : 'MAIN',
+          hx717: mockSwap ? 'MAIN' : 'AUX',
+          ads1232_count: adsCount + Math.floor((Math.random() - 0.5) * 20),
+          hx717_count: hxCount + Math.floor((Math.random() - 0.5) * 20)
+        });
+      }
+      if (url.startsWith('/saveSensorMap')) {
+        const u = new URL('http://dummy' + url);
+        mockSwap = (u.searchParams.get('swap') === '1');
+        const adsCount = !mockSwap ? mockRawAds : mockRawHx;
+        const hxCount = !mockSwap ? mockRawHx : mockRawAds;
+        return JSON.stringify({
+          status: 'ok',
+          swap: mockSwap,
+          ads1232: mockSwap ? 'AUX' : 'MAIN',
+          hx717: mockSwap ? 'MAIN' : 'AUX',
+          ads1232_count: adsCount,
+          hx717_count: hxCount
+        });
+      }
+      if (url.startsWith('/raw?')) {
+        const u = new URL('http://dummy' + url);
+        const hook = u.searchParams.get('hook');
+        const noise = Math.floor((Math.random() - 0.5) * 40);
+        if (hook === 'aux') {
+          return String((mockSwap ? mockRawAds : mockRawHx) + noise);
+        } else {
+          return String((mockSwap ? mockRawHx : mockRawAds) + noise);
+        }
+      }
+      if (url.startsWith('/rawCal?')) {
+        return '12540';
+      }
+      if (url.startsWith('/liveWeight')) {
+        const mLoad = mockSwap ? 4.25 : 12.80;
+        const aLoad = mockSwap ? 12.80 : 4.25;
+        return JSON.stringify({ main: mLoad, aux: aLoad, total: (mLoad + aLoad).toFixed(2) });
+      }
+      if (url.startsWith('/getSwitchStates')) return JSON.stringify({ rope: 0, anemo: 0, anemoDisplay: 0, atp: 0 });
+      if (url.startsWith('/getMainConfig')) return JSON.stringify({ enable: 1, alarm: 1, capacity: 50, percent: 100 });
+      if (url.startsWith('/getAuxConfig')) return JSON.stringify({ enable: 1, alarm: 1, capacity: 20, percent: 100 });
+      if (url.startsWith('/getRope')) return JSON.stringify({ variation: 15 });
+      if (url.startsWith('/getRelayConfig')) return JSON.stringify([0,0,0]);
+      if (url.startsWith('/getCPT')) return '22500';
+      if (url.startsWith('/getLoads')) return '[]';
+      if (url.startsWith('/getNoLoad')) return '10200';
+      if (url.startsWith('/anemo')) return '2.4';
+      if (url.startsWith('/atpData')) return JSON.stringify({ rawX: 0.2, adjX: 0.2, rawY: -0.1, adjY: -0.1 });
+      if (url.startsWith('/getDispThreshold')) return JSON.stringify({ threshold: 90, delay: 5, unit: 0 });
+      if (url.startsWith('/getWifiTimeout')) return '5';
+      return 'OK';
+    };
+
+    const _unused_api = async (url) => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("API Error");
+        return await res.text();
+      } catch (err) {
+        showToast("Connection Error!", "error");
+        return null;
+      }
+    };
+    function showToast(msg, type = "success") {
+      const t = $("toast");
+      t.textContent = msg;
+      t.className = "show";
+      t.style.background = type === "error" ? "#ef4444" : "#059669";
+      clearTimeout(t.timer);
+      t.timer = setTimeout(() => { t.className = ""; }, 3000);
+    }
+
+    // --- STATE ---
+    let hook = 'main';
+    let raw = 0;
+    let noLoad = 0;
+    let clickCount = 0;
+    let clickTimer = null;
+
+    function secret() {
+      clickCount++;
+      if (clickCount === 1) {
+        clickTimer = setTimeout(() => { clickCount = 0; }, 500); // Reset if not double clicked
+      } else if (clickCount === 2) {
+        clearTimeout(clickTimer);
+        const tools = $("admin-tools");
+        const isHidden = tools.style.display === "none";
+        tools.style.display = isHidden ? "block" : "none";
+        showToast(isHidden ? "Admin Tools Shown" : "Admin Tools Hidden");
+        clickCount = 0;
+        
+        if (isHidden) {
+          setTimeout(() => {
+            tools.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 100);
+        }
+      }
+    }
+
+    // --- NAVIGATION ---
+    function nav(p) {
+      $("page-cal").className = p === 'cal' ? 'page active' : 'page';
+      $("page-config").className = p === 'config' ? 'page active' : 'page';
+
+      // Floating buttons visibility logic
+      const fb = $("floating-back");
+      const fc = $("floating-config");
+
+      if (p === 'config') {
+        fb.classList.add('show');
+        fc.classList.remove('show');
+      } else {
+        fb.classList.remove('show');
+        fc.classList.add('show');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function setHook(h) {
+      hook = h;
+      $("tab-main").className = h === 'main' ? 'tab-btn active' : 'tab-btn';
+      $("tab-aux").className = h === 'aux' ? 'tab-btn active' : 'tab-btn';
+      loadPageData();
+      showToast(h === 'main' ? "Main Hook Selected" : "Aux Hook Selected");
+    }
+
+    // --- CALIBRATION LOGIC ---
+  async function loadPageData() {
+  const nl = await api(`/getNoLoad?hook=${hook}`);
+  noLoad = parseInt(nl) || 0;
+  $("noload-val").value = noLoad;
+
+  const loads = JSON.parse(await api(`/getLoads?hook=${hook}`) || "[]");
+  for (let i = 1; i <= 8; i++) {
+    const l = loads[i - 1] || {};
+    // Note: The UI template provided has 8 rows but the backend struct usually handles 4. 
+    // I will keep the 8-row JS logic as provided by the user.
+    if ($("count-" + i)) $("count-" + i).textContent = l.count || 0;
+    if ($("val-" + i)) $("val-" + i).value = l.value || "";
+    const btn = $("btn-" + i);
+    if (btn) {
+      if (l.valid) {
+        btn.textContent = "Saved";
+        btn.style.background = "#10b981";
+      } else {
+        btn.textContent = "Save";
+        btn.style.background = "#0f172a";
+      }
+    }
+  }
+
+  // Decimals
+  const d = await api("/decimal?get=1");
+  $("dec-mode").checked = (d == 2);
+
+  // 🔥 LOAD SAVED CPT FROM ESP32
+  const cptSaved = await api(`/getCPT?hook=${hook}`);
+  $("disp-cpt").textContent = parseFloat(cptSaved || 0).toFixed(0);
+}
+
+
+    // Table setup
+    const tbody = $("load-tbody");
+    for (let i = 1; i <= 8; i++) {
+      const tr = document.createElement("tr");
+      tr.id = "row-" + i;
+      tr.innerHTML = `<td>${i}</td>
+    <td><strong id="count-${i}" style="color:#2563eb">0</strong></td>
+    <td><input type="number" id="val-${i}" step="0.1" style="text-align:center"></td>
+    <td><button id="btn-${i}" class="btn btn-save" onclick="saveLoad(${i})">Save</button></td>`;
+      tbody.appendChild(tr);
+    }
+
+    function updateTableVisibility() {
+      let n = parseInt($("num-loads").value) || 1;
+      if (n > 4) {
+        showToast("Max 4 Loads Allowed!", "error");
+        n = 4;
+        $("num-loads").value = 4;
+      }
+      for (let i = 1; i <= 8; i++) $("row-" + i).style.display = (i <= n) ? "table-row" : "none";
+    }
+
+    // --- JS GREEN FLASH UTILS ---
+    function flashBtn(btn) {
+      if (!btn) return;
+      const original = btn.style.backgroundColor;
+      const originalText = btn.textContent;
+      btn.classList.add('btn-success');
+      setTimeout(() => {
+        btn.classList.remove('btn-success');
+      }, 2000);
+    }
+
+    // --- ACTIONS ---
+    window.saveNoLoad = async (btn) => {
+      const absoluteRaw = window.absoluteRaw || 0;   // ✅ REAL SENSOR RAW
+      noLoad = absoluteRaw;
+
+      $("noload-val").value = noLoad;
+      await api(`/saveNoLoad?hook=${hook}&val=${noLoad}`);
+      showToast("Zero Point (No Load) Set!");
+    };
+
+    window.saveLoad = async (idx, btn) => {
+      const count = raw;
+      const val = parseFloat($("val-" + idx).value) || 0;
+      $("count-" + idx).textContent = count;
+
+      if (val > 0) {
+        const cpt = count / val;
+        $("disp-cpt").textContent = cpt.toFixed(0);
+      }
+
+      // Update button visual
+      const btnEl = $("btn-" + idx);
+      btnEl.textContent = "Saved";
+      btnEl.style.background = "#10b981";
+
+      await api(`/saveLoad?hook=${hook}&idx=${idx - 1}&count=${count}&value=${val}`);
+      showToast(`Load ${idx} Calibrated!`);
+    };
+
+    window.finishCalibration = async () => {
+      const res = await api(`/done?hook=${hook}`);
+      $("disp-cpt").textContent = parseFloat(res).toFixed(0);
+      showToast("Calibration Complete. CPT Updated.");
+    };
+
+    window.resetHook = async () => {
+      if (!confirm("Reset all calibration data for this hook?")) return;
+
+      const res = await api(`/resetHook?hook=${hook}`);
+
+      if (res === "RESET_DONE") {
+        // ✅ Clear CPT display instantly
+        $("disp-cpt").textContent = "0";
+
+        // ✅ Clear current load
+        $("disp-load").textContent = "0.00 T";
+
+        // ✅ Clear table values
+        for (let i = 1; i <= 8; i++) {
+          $("count-" + i).textContent = "0";
+          $("val-" + i).value = "";
+          const btn = $("btn-" + i);
+          btn.textContent = "Save";
+          btn.style.background = "#0f172a";
+        }
+
+        showToast("Calibration & CPT Reset");
+      }
+
+      loadPageData();
+      const cptSaved = await api(`/getCPT?hook=${hook}`);
+      $("disp-cpt").textContent = parseFloat(cptSaved || 0).toFixed(0);
+
+    };
+
+
+    window.toggleDecimal = async () => {
+      const m = $("dec-mode").checked ? 2 : 1;
+      await api(`/decimal?mode=${m}`);
+      showToast(`Decimal format set to ${m == 2 ? "0.00" : "0.0"}`);
+    };
+
+    // --- SENSOR CHANNEL ASSIGNMENT ACTIONS ---
+    window.setSensorChannel = async (target) => {
+      const isAux = (target === 'aux');
+      updateSensorMapUI(isAux);
+      const res = await api(`/saveSensorMap?swap=${isAux ? 1 : 0}`);
+      if (res) {
+        showToast(isAux ? "Saved to EEPROM: ADS1232 → AUX | HX717 → MAIN" : "Saved to EEPROM: ADS1232 → MAIN | HX717 → AUX");
+      }
+    };
+
+    function updateSensorMapUI(isSwapped) {
+      if (isSwapped) {
+        // ADS1232 = AUX, HX717 = MAIN
+        $("btn-ads-main")?.classList.remove("active");
+        $("btn-ads-aux")?.classList.add("active");
+
+        const chipAds = $("chip-ads-hook");
+        if (chipAds) {
+          chipAds.textContent = "AUX HOIST";
+          chipAds.className = "chip-hook hook-aux";
+        }
+        const chipHx = $("chip-hx-hook");
+        if (chipHx) {
+          chipHx.textContent = "MAIN HOIST";
+          chipHx.className = "chip-hook hook-main";
+        }
+      } else {
+        // ADS1232 = MAIN, HX717 = AUX
+        $("btn-ads-main")?.classList.add("active");
+        $("btn-ads-aux")?.classList.remove("active");
+
+        const chipAds = $("chip-ads-hook");
+        if (chipAds) {
+          chipAds.textContent = "MAIN HOIST";
+          chipAds.className = "chip-hook hook-main";
+        }
+        const chipHx = $("chip-hx-hook");
+        if (chipHx) {
+          chipHx.textContent = "AUX HOIST";
+          chipHx.className = "chip-hook hook-aux";
+        }
+      }
+    }
+
+    // --- CONFIG ACTIONS ---
+    window.saveConfig = async (h, manual = false, btn = null) => {
+      if (btn) flashBtn(btn);
+      const prefix = h === 'main' ? 'm' : 'a';
+      const data = {
+        loadEnable: $(prefix + '-enable').checked ? 1 : 0,
+        overloadEnable: $(prefix + '-alarm').checked ? 1 : 0,
+        capacity: $(prefix + '-cap').value,
+        percent: $(prefix + '-lim').value
+      };
+
+      // UI Sync
+      [prefix + '-alarm', prefix + '-cap', prefix + '-lim'].forEach(id => {
+        $(id).disabled = !data.loadEnable;
+      });
+
+      if (manual) {
+        const q = new URLSearchParams(data).toString();
+        const endpoint = h === 'main' ? '/saveMainConfig' : '/saveAuxConfig';
+        await api(`${endpoint}?${q}`);
+        showToast(`${h.toUpperCase()} Hook Settings Saved`);
+      } else {
+        // Auto-save for toggles, still flash if trigger was a toggle click
+        const q = new URLSearchParams(data).toString();
+        const endpoint = h === 'main' ? '/saveMainConfig' : '/saveAuxConfig';
+        await api(`${endpoint}?${q}`);
+      }
+    };
+
+    window.saveSwitch = async (name, elem) => {
+      let id = '';
+      let label = '';
+      if (name === 'rope') { id = 'rope-sw'; label = 'Rope'; }
+      if (name === 'anemo') { id = 'wind-sw'; label = 'Anemometer'; }
+      if (name === 'atp') { id = 'atp-sw'; label = 'Anti-Tilt'; }
+      if (name === 'anemoDisplay') { id = 'wind-hud'; label = 'Wind HUD'; }
+
+      const state = $(id).checked ? 1 : 0;
+      await api(`/saveSwitch?name=${name}&state=${state}`);
+      showToast(`${label} ${state ? "Enabled" : "Disabled"}`);
+    };
+
+    window.saveVal = async (urlPart, id, label, btn) => {
+      if (btn) flashBtn(btn);
+      const val = $(id).value;
+      await api(`/${urlPart}=${val}`);
+      showToast(`${label} Saved: ${val}`);
+    };
+
+    const RELAY_PARAMS = ["Main Overload", "Aux Overload", "Rope Slack", "Anti-Tilt (ATP)", "Anemometer"];
+    function renderRelayGrid() {
+      $("relay-controls").innerHTML = RELAY_PARAMS.map((name, p) => `
+        <div class="relay-item">
+          <div class="relay-label">${name}</div>
+          <div class="relay-btn-grid">
+            <div class="r-chip" id="rc-0-${p}" onclick="toggleRelay(0, ${p})"><span>RLY 1</span></div>
+            <div class="r-chip" id="rc-1-${p}" onclick="toggleRelay(1, ${p})"><span>RLY 2</span></div>
+            <div class="r-chip" id="rc-2-${p}" onclick="toggleRelay(2, ${p})"><span>RLY 3</span></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.toggleRelay = async (r, p) => {
+      const chip = $(`rc-${r}-${p}`);
+      const state = chip.classList.contains('active') ? 0 : 1;
+      
+      // Update UI Instantly
+      if (state) chip.classList.add('active'); else chip.classList.remove('active');
+      
+      await api(`/saveRelayConfig?relay=${r}&param=${p}&state=${state}`);
+      const statusText = state ? "ENABLED" : "DISABLED";
+      showToast(`Relay ${r + 1}: ${RELAY_PARAMS[p]} is now ${statusText}`);
+    };
+
+    window.resetAngles = async () => {
+      await api('/resetAngles');
+      showToast("Tilt Angles Zeroed");
+    };
+
+    window.saveDispThreshold = async (btn) => {
+      if (btn) flashBtn(btn);
+      const rawThresh = $("disp-thresh-val").value;
+      const threshold = (rawThresh === "" || isNaN(parseFloat(rawThresh))) ? 0 : parseFloat(rawThresh);
+      const rawDelay = $("disp-delay-val").value;
+      const delay = (rawDelay === "" || isNaN(parseInt(rawDelay))) ? 5 : parseInt(rawDelay);
+      const unit = $("disp-unit-val").value || "0";
+
+      const res = await api(`/saveDispThreshold?threshold=${threshold}&delay=${delay}&unit=${unit}`);
+      if (res) showToast("Display Off Settings Saved");
+    };
+
+    // --- LOOP ---
+    setInterval(async () => {
+      // Dashboard RAW (filtered)
+      const r = await api(`/raw?hook=${hook}`);
+      const rawFiltered = Math.trunc(Number(r));
+      if (!isNaN(rawFiltered)) {
+        $("disp-raw").textContent = rawFiltered.toLocaleString();
+      }
+
+
+      // Calibration RAW (zero-offset raw1)
+      const rc = await api(`/rawCal?hook=${hook}`);
+      raw = Math.trunc(Number(rc));   // 👈 used by table save
+      // Absolute RAW for zeroing
+      const absRaw = Math.trunc(Number(await api(`/raw?hook=${hook}`)));
+      window.absoluteRaw = absRaw;   // store separately
+
+      // Update Live Counts for Sensor Channel Assignment
+      if ($("chip-ads-count") && $("chip-hx-count")) {
+        const sm = await api('/getSensorMap');
+        if (sm) {
+          try {
+            const sj = JSON.parse(sm);
+            if (sj.ads1232_count !== undefined) {
+              $("chip-ads-count").textContent = Number(sj.ads1232_count).toLocaleString();
+            }
+            if (sj.hx717_count !== undefined) {
+              $("chip-hx-count").textContent = Number(sj.hx717_count).toLocaleString();
+            }
+          } catch(e) {}
+        }
+      }
+
+      // --- GET REAL WEIGHTS FROM DEVICE (SYNC WITH DISPLAY) ---
+      // ✅ Get real weights from ESP32
+      const w = JSON.parse(await api('/liveWeight') || "{}");
+
+      if (w.main !== undefined) {
+
+        // Selected hook load
+        const selectedLoad = hook === 'main' ? w.main : w.aux;
+        $("disp-load").textContent = Number(selectedLoad).toFixed(2) + " T";
+
+        // Total load = same as 7-segment display
+        $("totalLoadWeb").textContent = Number(w.total).toFixed(2) + " T";
+      }
+
+
+      // Update Unsaved Table Rows
+      for (let i = 1; i <= 8; i++) {
+        if ($("btn-" + i) && $("btn-" + i).textContent !== "Saved") {
+          $("count-" + i).textContent = raw;
+        }
+      }
+
+      // Wind
+      $("wind-display").textContent = (await api('/anemo')) + " m/s";
+
+      // ATP
+      const atpDataRes = await api('/atpData');
+      if (atpDataRes) {
+        const atp = JSON.parse(atpDataRes || "{}");
+        if (atp.rawX !== undefined) {
+          $("raw-x").textContent = atp.rawX.toFixed(1);
+          $("adj-x").textContent = atp.adjX.toFixed(1);
+          $("raw-y").textContent = atp.rawY.toFixed(1);
+          $("adj-y").textContent = atp.adjY.toFixed(1);
+        }
+      }
+    }, 400);
+    async function restoreAllStates() {
+      // ---- SENSOR CHANNEL MAPPING ----
+      try {
+        const smap = JSON.parse(await api('/getSensorMap') || "{}");
+        updateSensorMapUI(!!smap.swap);
+      } catch(e) {}
+
+      // ---- SWITCHES ----
+      const sw = JSON.parse(await api('/getSwitchStates') || "{}");
+
+      $("rope-sw").checked = !!sw.rope;
+      $("wind-sw").checked = !!sw.anemo;
+      $("wind-hud").checked = !!sw.anemoDisplay;
+      $("atp-sw").checked = !!sw.atp;
+
+      // ---- MAIN HOOK CONFIG ----
+      const main = JSON.parse(await api('/getMainConfig') || "{}");
+      $("m-enable").checked = !!main.enable;
+      $("m-alarm").checked = !!main.alarm;
+      $("m-cap").value = main.capacity ?? "";
+      $("m-lim").value = main.percent ?? "";
+
+      // ---- AUX HOOK CONFIG ----
+      const aux = JSON.parse(await api('/getAuxConfig') || "{}");
+      $("a-enable").checked = !!aux.enable;
+      $("a-alarm").checked = !!aux.alarm;
+      $("a-cap").value = aux.capacity ?? "";
+      $("a-lim").value = aux.percent ?? "";
+
+      // ---- ROPE ----
+      const rope = JSON.parse(await api('/getRope') || "{}");
+      $("rope-var").value = rope.variation ?? "";
+
+      // ---- RELAYS ----
+      const relays = JSON.parse(await api('/getRelayConfig') || "[]");
+      for (let p = 0; p < 5; p++) {
+        for (let r = 0; r < 3; r++) {
+          const bit = (relays[r] >> p) & 1;
+          const chip = $(`rc-${r}-${p}`);
+          if (chip) {
+            if (bit) chip.classList.add('active');
+            else chip.classList.remove('active');
+          }
+        }
+      }
+    }
+
+    // Init
+    renderRelayGrid();
+    loadPageData();
+    updateTableVisibility();
+    // Get saved values for inputs
+    api('/getSavedWindLimit').then(v => $("wind-lim").value = v);
+    api('/getAtp').then(d => {
+      const j = JSON.parse(d);
+      $("set-x").value = j.setX;
+      $("set-y").value = j.setY;
+    });
+    api('/getAlpha').then(v => {
+      if($("alpha-val")) $("alpha-val").value = v;
+    });
+    api('/getWifiTimeout').then(v => {
+      if($("wifi-timeout")) $("wifi-timeout").value = v;
+    });
+    api('/getDispThreshold').then(d => {
+      if (d) {
+        try {
+          const j = JSON.parse(d);
+          if ($("disp-thresh-val")) $("disp-thresh-val").value = j.threshold ?? 90;
+          if ($("disp-delay-val")) $("disp-delay-val").value = j.delay ?? 5;
+          if ($("disp-unit-val")) $("disp-unit-val").value = j.unit ?? 0;
+        } catch (e) {}
+      }
+    });
+
+    api('/getSensorMap').then(d => {
+      if (d) {
+        try {
+          const j = JSON.parse(d);
+          updateSensorMapUI(j.swap === true || j.swap === "true");
+          if (j.ads1232_count !== undefined && $("chip-ads-count")) {
+            $("chip-ads-count").textContent = Number(j.ads1232_count).toLocaleString();
+          }
+          if (j.hx717_count !== undefined && $("chip-hx-count")) {
+            $("chip-hx-count").textContent = Number(j.hx717_count).toLocaleString();
+          }
+        } catch (e) {}
+      }
+    });
+    
+    // Check for saved redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('savedMin')) {
+      showToast("WiFi Timeout Saved: " + urlParams.get('savedMin') + " min");
+      // Optional: switch to admin tab if needed, but here it's usually visible if they were just there
+    }
+
+    restoreAllStates();
+    async function saveRopeVariation(btn) {
+      const val = document.getElementById("rope-var").value;
+
+      if (!val) {
+        showToast("Enter Slack Variation", "error");
+        return;
+      }
+
+      flashBtn(btn); // keep green animation
+      await api(`/saveRope?variation=${val}`);
+      showToast("Slack Variation Saved");
+    }
+
+    async function saveAlpha() {
+      const alpha = document.getElementById("alpha-val").value;
+      const pass = document.getElementById("alpha-pass").value;
+
+      if (!alpha || !pass) {
+        showToast("Enter alpha & passcode", "error");
+        return;
+      }
+
+      const res = await api(`/saveAlpha?pass=${pass}&alpha=${alpha}`);
+      if (res) showToast("Alpha filter updated");
+    }
+
+    window.masterReset = async () => {
+      const confirm1 = confirm("CRITICAL WARNING:\n\nThis will reset EVERYTHING to zero (EEPROM factory reset).\nAll your calibration data and configurations will be lost.\n\nAre you absolutely sure you want to proceed?");
+      if (!confirm1) return;
+
+      const confirm2 = confirm("FINAL CONFIRMATION:\n\nThe system will restart after the reset. Proceed with Master Reset?");
+      if (!confirm2) return;
+
+      showToast("Performing Master Reset...", "error");
+      const res = await api('/masterReset');
+      if (res === "MASTER_RESET_DONE") {
+        showToast("System Reset! Restarting...", "error");
+        setTimeout(() => {
+          location.reload();
+        }, 3000);
+      }
+    };
+
+
+  </script>
+</body>
+</html>

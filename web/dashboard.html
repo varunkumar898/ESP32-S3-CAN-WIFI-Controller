@@ -1,0 +1,1135 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+  <title>ESP32-S3 Controller Dashboard</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --blue: #1e40af;
+      --green: #15803d;
+      --orange: #c2410c;
+      --pink: #be185d;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #334155;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-color: var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .outer-page {
+      display: none
+    }
+
+    .outer-page.active {
+      display: block
+    }
+
+    .dp {
+      background: #FFFECB;
+      color: #334155;
+      min-height: 100vh;
+      background-image: 
+        linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px), 
+        linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+      background-size: 40px 40px, 40px 40px;
+    }
+
+    .dp-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(12, 16, 24, .95);
+      border-bottom: 1px solid #1a2540
+    }
+
+    .dp-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .dp-logo-icon {
+      width: 30px;
+      height: 30px;
+      border: 2px solid #e6a817;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: #e6a817;
+      font-weight: 900
+    }
+
+    .dp-logo-text {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #fff
+    }
+
+    .dp-logo-text span {
+      color: #e6a817
+    }
+
+    .dp-time {
+      font-family: 'Courier New', monospace;
+      text-align: center
+    }
+
+    .dp-time .t {
+      font-size: 15px;
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 1px
+    }
+
+    .dp-time .d {
+      font-size: 8px;
+      color: #555;
+      letter-spacing: 1px
+    }
+
+    .dp-gear {
+      width: 32px;
+      height: 32px;
+      background: #141c2d;
+      border: 1px solid #1a2540;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 17px;
+      transition: all .3s;
+      color: #8b949e
+    }
+
+    .dp-gear:hover {
+      background: #1a2540;
+      transform: rotate(90deg);
+      color: #e6a817
+    }
+
+    #mainHookGrp,
+    #auxHookGrp {
+      transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .dp-toast {
+      position: fixed;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0d2818;
+      color: #00ff88;
+      border: 1px solid rgba(0, 255, 136, .2);
+      padding: 10px 24px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      z-index: 10002;
+      transition: top .4s ease;
+      letter-spacing: .5px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .4)
+    }
+
+    .dp-toast.show {
+      top: 16px
+    }
+
+    .dp-dc-ov {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 10, 18, .92);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10003;
+      backdrop-filter: blur(6px);
+      flex-direction: column;
+      gap: 16px
+    }
+
+    .dp-dc-ov.show {
+      display: flex
+    }
+
+    .dp-dc-icon {
+      font-size: 48px;
+      animation: dcPulse 1.5s infinite
+    }
+
+    .dp-dc-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #ff4444;
+      letter-spacing: 2px;
+      text-transform: uppercase
+    }
+
+    .dp-dc-sub {
+      font-size: 12px;
+      color: #555;
+      max-width: 260px;
+      text-align: center;
+      line-height: 1.5
+    }
+
+    .dp-dc-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ff4444;
+      box-shadow: 0 0 12px rgba(255, 68, 68, .6);
+      animation: dcPulse 1.5s infinite
+    }
+
+    @keyframes dcPulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1)
+      }
+
+      50% {
+        opacity: .4;
+        transform: scale(.9)
+      }
+    }
+
+    .dp-main {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 0;
+      min-height: calc(100vh - 80px);
+      align-items: center
+    }
+
+    .dp-crane {
+      width: 100%;
+      flex: 12;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      margin: 0;
+      overflow: visible
+    }
+
+    .dp-crane svg {
+      width: 100%;
+      height: auto;
+      max-height: 95vh;
+      filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5))
+    }
+
+    .dp-gauge-wrap {
+      width: 100%;
+      max-width: 500px;
+      flex: 1;
+      background: rgba(17, 24, 39, .85);
+      border: 1px solid #1a2540;
+      border-radius: 16px;
+      padding: 10px 20px;
+      margin-bottom: 5px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .dp-gauge-wrap svg {
+      width: 100%;
+      max-width: 240px
+    }
+
+    .dp-gauge-label {
+      font-size: 14px;
+      color: #8b949e;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-top: 10px;
+      text-align: center
+    }
+
+    .dp-gauge-max {
+      font-size: 15px;
+      color: #e6a817;
+      font-weight: 700;
+      text-align: center;
+      margin-top: 4px
+    }
+
+    @media(max-width:420px) {
+      .dp-main {
+        flex-direction: column
+      }
+
+      .dp-gauge-wrap {
+        width: 100%;
+        padding: 12px
+      }
+    }
+
+    .dp-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 10px 10px
+    }
+
+    .dc {
+      background: linear-gradient(135deg, rgba(17, 24, 39, .9), rgba(12, 16, 24, .95));
+      border: 1px solid #1e2d4a;
+      border-left: 3px solid #00ff88;
+      border-radius: 12px;
+      padding: 14px 16px;
+      position: relative;
+      transition: border-color .3s
+    }
+
+    .dc:nth-child(2) {
+      border-left-color: #60a5fa
+    }
+
+    .dc:nth-child(3) {
+      border-left-color: #06b6d4
+    }
+
+    .dc:nth-child(4) {
+      border-left-color: #f59e0b
+    }
+
+    .dc:nth-child(5) {
+      border-left-color: #e6a817
+    }
+
+    .dc-hdr {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 8px
+    }
+
+    .dc-num {
+      font-size: 11px;
+      color: #e6a817;
+      font-weight: 800
+    }
+
+    .dc-title {
+      font-size: 11px;
+      color: #c9d1d9;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      flex: 1
+    }
+
+    .dc-dots {
+      color: #2a3550;
+      font-size: 14px;
+      letter-spacing: -1px
+    }
+
+    .dc-body {
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .dc-val {
+      font-family: 'Courier New', monospace;
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.1
+    }
+
+    .dc-val span {
+      font-size: 16px;
+      color: #c9d1d9;
+      font-weight: 600;
+      margin-left: 3px
+    }
+
+    .dc-ring {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0
+    }
+
+    .dc-ring svg {
+      width: 100%;
+      height: 100%
+    }
+
+    .dc-sub {
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 4px;
+      font-weight: 600
+    }
+
+    .dp-safety {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      padding: 0 10px 10px
+    }
+
+    .dp-sf {
+      background: linear-gradient(135deg, rgba(17, 24, 39, .9), rgba(12, 16, 24, .95));
+      border: 1px solid #1e2d4a;
+      border-radius: 10px;
+      padding: 10px 6px;
+      text-align: center
+    }
+
+    .dp-sf .sl {
+      font-size: 10px;
+      color: #c9d1d9;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      font-weight: 700;
+      margin-bottom: 5px
+    }
+
+    .dp-sf .sv {
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px
+    }
+
+    .dp-sf .sv .sd {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block
+    }
+
+    .dp-sf.ok .sv {
+      color: #00ff88
+    }
+
+    .dp-sf.ok .sv .sd {
+      background: #00ff88;
+      box-shadow: 0 0 6px rgba(0, 255, 136, .5)
+    }
+
+    .dp-sf.alarm .sv {
+      color: #ff4444;
+      animation: dpB .6s infinite
+    }
+
+    .dp-sf.alarm .sv .sd {
+      background: #ff4444;
+      box-shadow: 0 0 6px rgba(255, 68, 68, .5)
+    }
+
+    .dp-sf.off .sv {
+      color: #444
+    }
+
+    .dp-sf.off .sv .sd {
+      background: #222
+    }
+
+    @keyframes dpB {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .4
+      }
+    }
+
+    .dp-ft {
+      text-align: center;
+      padding: 12px;
+      font-size: 8px;
+      color: #222
+    }
+
+    /* CALIBRATION/SETTINGS UI STYLES */
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      color: var(--text);
+    }
+
+    #settingsPage h1 {
+      padding: 20px;
+      background: white;
+      text-align: center;
+      color: var(--blue);
+      text-transform: uppercase;
+    }
+
+    #settingsPage h2 {
+      text-align: center;
+      color: #64748b;
+      font-size: 0.9rem;
+      padding-bottom: 10px;
+    }
+
+    .switch-tabs {
+      display: flex;
+      padding: 10px 20px;
+      gap: 10px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      background: #e2e8f0;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .dashboard {
+      background: #1e293b;
+      margin: 20px;
+      padding: 20px;
+      border-radius: 12px;
+      color: white;
+    }
+
+    .val-big {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #fbbf24;
+    }
+
+    .dash-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      margin-top: 15px;
+      gap: 15px;
+    }
+
+    .val-med,
+    .val-sub {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #34d399;
+    }
+
+    .zero-box {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-nav {
+      margin: 20px;
+      display: block;
+      background: #f1f5f9;
+      text-align: center;
+      width: calc(100% - 40px);
+    }
+
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+    }
+
+    .field-row input {
+      padding: 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      width: 100px;
+    }
+
+    table {
+      width: calc(100% - 40px);
+      margin: 20px;
+      border-collapse: collapse;
+    }
+
+    th {
+      background: #f8fafc;
+      padding: 10px;
+      text-align: left;
+    }
+
+    td {
+      padding: 10px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .card {
+      margin: 20px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 12px 20px;
+      background: #f8fafc;
+      font-weight: 800;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    .hud-switch {
+      position: relative;
+      display: inline-block;
+      width: 120px;
+      height: 34px;
+    }
+
+    .hud-switch input {
+      display: none;
+    }
+
+    .hud-track {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #e2e8f0;
+      border-radius: 17px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+    }
+
+    .hud-knob {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 28px;
+      height: 28px;
+      background: white;
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+
+    .hud-switch input:checked+.hud-track .hud-knob {
+      transform: translateX(86px);
+      background: #10b981;
+    }
+
+    .hud-txt {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: #64748b;
+    }
+
+    .pw-ov {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10001;
+      padding: 20px;
+      backdrop-filter: blur(4px)
+    }
+
+    .pw-ov.show {
+      display: flex
+    }
+
+    .pw-bx {
+      background: #111827;
+      border: 1px solid #1a2540;
+      border-radius: 16px;
+      padding: 28px 24px;
+      max-width: 320px;
+      width: 100%;
+      text-align: center
+    }
+
+    .pw-inp {
+      width: 100%;
+      padding: 12px;
+      background: #0c1018;
+      border: 1.5px solid #1a2540;
+      border-radius: 10px;
+      color: #fff;
+      font-family: monospace;
+      font-size: 18px;
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .sp-back {
+      padding: 15px 20px;
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      color: var(--primary);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    
+    #relay-controls .relay-item { padding: 10px 0; border-bottom: 1px solid #eee; }
+    .relay-btn-grid { display: flex; gap: 5px; margin-top: 5px; }
+    .r-chip { flex: 1; padding: 5px; background: #f1f5f9; border-radius: 4px; text-align: center; font-size: 0.7rem; cursor: pointer; font-weight: 800; }
+    .r-chip.active { background: #10b981; color: white; }
+  </style>
+</head>
+
+<body>
+
+  <!-- Password Modal -->
+  <div class="pw-ov" id="dpPwModal">
+    <div class="pw-bx">
+      <div style="font-size:36px">🔒</div>
+      <div style="color:#c9d1d9; font-weight:700; margin-top:10px">Admin Access</div>
+      <input type="password" id="dpPwInput" class="pw-inp" placeholder="••••" maxlength="4">
+      <div id="dpPwErr" style="color:#ff4444; font-size:11px; display:none; margin-top:5px">Wrong password</div>
+      <div style="display:flex; gap:10px; margin-top:20px">
+        <button class="btn" style="background:#1a2540; color:#888; flex:1" onclick="dpClosePw()">Cancel</button>
+        <button class="btn btn-primary" style="flex:1" onclick="dpCheckPw()">Login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Page -->
+  <div id="dashboardPage" class="outer-page active dp">
+    <div class="dp-hdr">
+      <div class="dp-logo">
+        <div class="dp-logo-icon">H</div>
+        <div class="dp-logo-text"><span>ESP32-S3</span> TECH</div>
+      </div>
+      <div class="dp-time">
+        <div class="t" id="dpClk">--:--:--</div>
+        <div class="d" id="dpDate">---</div>
+      </div>
+      <div class="dp-gear" onclick="dpShowSettings()">⚙</div>
+    </div>
+
+    <div class="dp-main">
+      <div class="dp-crane">
+        <svg viewBox="15 0 270 420">
+          <defs>
+            <linearGradient id="gY" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#f5c518" />
+              <stop offset="40%" stop-color="#e8a817" />
+              <stop offset="100%" stop-color="#b07a05" />
+            </linearGradient>
+            <linearGradient id="gYs" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#c99a0a" />
+              <stop offset="100%" stop-color="#7a5500" />
+            </linearGradient>
+            <linearGradient id="gYt" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#e8b015" />
+              <stop offset="100%" stop-color="#a07500" />
+            </linearGradient>
+            <linearGradient id="gBl" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#4a90d9" />
+              <stop offset="50%" stop-color="#2563eb" />
+              <stop offset="100%" stop-color="#1a3fa0" />
+            </linearGradient>
+            <linearGradient id="gSt" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#5a6578" />
+              <stop offset="50%" stop-color="#3d4555" />
+              <stop offset="100%" stop-color="#2a3040" />
+            </linearGradient>
+            <linearGradient id="gHk" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#e8b015" />
+              <stop offset="100%" stop-color="#8a6000" />
+            </linearGradient>
+            <linearGradient id="gScr" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#080808" />
+              <stop offset="100%" stop-color="#000000" />
+            </linearGradient>
+            <linearGradient id="gHk2" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#1a1a1a" />
+              <stop offset="30%" stop-color="#333" />
+              <stop offset="60%" stop-color="#050505" />
+              <stop offset="100%" stop-color="#000" />
+            </linearGradient>
+            <filter id="sh1">
+              <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity=".35" />
+            </filter>
+            <filter id="sh2">
+              <feDropShadow dx="0.5" dy="1" stdDeviation="1" flood-opacity=".25" />
+            </filter>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="1.5" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0,0,0,0.05)" stroke-width="0.5" />
+              <circle cx="0" cy="0" r="0.5" fill="rgba(0,0,0,0.1)" />
+            </pattern>
+          </defs>
+          <rect x="0" y="0" width="300" height="420" fill="url(#grid)" />
+          <rect x="15" y="0" width="2" height="420" fill="rgba(255,255,255,0.05)" />
+          <rect x="283" y="0" width="2" height="420" fill="rgba(255,255,255,0.05)" />
+
+          <!-- ===== BUILDING STRUCTURE ===== -->
+          <!-- Back columns (depth) -->
+          <rect x="32" y="8" width="6" height="405" fill="#1a2540" opacity="0.5" />
+          <rect x="262" y="8" width="6" height="405" fill="#1a2540" opacity="0.5" />
+          <!-- Front columns (I-beam look) -->
+          <rect x="16" y="5" width="4" height="410" fill="#2a3550" />
+          <rect x="20" y="5" width="6" height="410" fill="url(#gSt)" />
+          <rect x="26" y="5" width="4" height="410" fill="#2a3550" />
+          <rect x="270" y="5" width="4" height="410" fill="#2a3550" />
+          <rect x="274" y="5" width="6" height="410" fill="url(#gSt)" />
+          <rect x="280" y="5" width="4" height="410" fill="#2a3550" />
+          <!-- Column cross-braces -->
+          <line x1="20" y1="30" x2="30" y2="70" stroke="#1e2840" stroke-width="1.2" />
+          <line x1="30" y1="30" x2="20" y2="70" stroke="#1e2840" stroke-width="1.2" />
+          <line x1="20" y1="80" x2="30" y2="120" stroke="#1e2840" stroke-width="1.2" />
+          <line x1="30" y1="80" x2="20" y2="120" stroke="#1e2840" stroke-width="1.2" />
+          <line x1="20" y1="130" x2="30" y2="170" stroke="#1e2840" stroke-width="1.2" />
+          <line x1="30" y1="130" x2="20" y2="170" stroke="#1e2840" stroke-width="1.2" />
+          <line x1="20" y1="180" x2="30" y2="220" stroke="#1e2840" stroke-width="1.2" />
+          <line x1="30" y1="180" x2="20" y2="220" stroke="#1e2840" stroke-width="1.2" />
+          <line x1="270" y1="30" x2="280" y2="70" stroke="#1e2840" stroke-width="1.2" />
+          <line x1="280" y1="30" x2="270" y2="70" stroke="#1e2840" stroke-width="1.2" />
+          <line x1="270" y1="80" x2="280" y2="120" stroke="#1e2840" stroke-width="1.2" />
+          <line x1="280" y1="80" x2="270" y2="120" stroke="#1e2840" stroke-width="1.2" />
+          <line x1="270" y1="130" x2="280" y2="170" stroke="#1e2840" stroke-width="1.2" />
+          <line x1="280" y1="130" x2="270" y2="170" stroke="#1e2840" stroke-width="1.2" />
+          <line x1="270" y1="180" x2="280" y2="220" stroke="#1e2840" stroke-width="1.2" />
+          <line x1="280" y1="180" x2="270" y2="220" stroke="#1e2840" stroke-width="1.2" />
+          <!-- Depth connectors (back frame) -->
+          <line x1="32" y1="10" x2="262" y2="10" stroke="#1a2540" stroke-width="1.5" opacity="0.4" />
+          <line x1="32" y1="150" x2="262" y2="150" stroke="#1a2540" stroke-width="1" opacity="0.3" />
+          <line x1="32" y1="250" x2="262" y2="250" stroke="#1a2540" stroke-width="1" opacity="0.2" />
+          <!-- Roof structure -->
+          <line x1="14" y1="5" x2="284" y2="5" stroke="#3a4560" stroke-width="3" />
+          <line x1="14" y1="8" x2="284" y2="8" stroke="#2a3550" stroke-width="1.5" />
+          <!-- Roof trusses (V pattern) -->
+          <line x1="50" y1="5" x2="75" y2="0" stroke="#222d40" stroke-width="1.2" />
+          <line x1="100" y1="5" x2="75" y2="0" stroke="#222d40" stroke-width="1.2" />
+          <line x1="125" y1="5" x2="150" y2="0" stroke="#222d40" stroke-width="1.2" />
+          <line x1="175" y1="5" x2="150" y2="0" stroke="#222d40" stroke-width="1.2" />
+          <line x1="200" y1="5" x2="225" y2="0" stroke="#222d40" stroke-width="1.2" />
+          <line x1="250" y1="5" x2="225" y2="0" stroke="#222d40" stroke-width="1.2" />
+          <!-- ===== RUNWAY RAILS ===== -->
+          <!-- Back rail (depth) -->
+          <rect x="30" y="20" width="240" height="2.5" fill="#3a4560" opacity="0.35" />
+          <rect x="30" y="22.5" width="240" height="5" fill="#2a3550" opacity="0.35" />
+          <!-- Front rail top flange -->
+          <rect x="14" y="26" width="272" height="3" rx="0.5" fill="#4a556a" />
+          <!-- Front rail web -->
+          <rect x="16" y="29" width="268" height="7" fill="url(#gSt)" />
+          <!-- Front rail bottom flange -->
+          <rect x="14" y="36" width="272" height="3" rx="0.5" fill="#3a4560" />
+          <!-- ===== END TRUCKS ===== -->
+          <rect x="24" y="39" width="40" height="10" rx="2" fill="#4a556a" filter="url(#sh2)" />
+          <circle cx="34" cy="49" r="4" fill="#2a3040" stroke="#1a2030" stroke-width="1.5" />
+          <circle cx="34" cy="49" r="1.5" fill="#4a556a" />
+          <circle cx="54" cy="49" r="4" fill="#2a3040" stroke="#1a2030" stroke-width="1.5" />
+          <circle cx="54" cy="49" r="1.5" fill="#4a556a" />
+          <rect x="236" y="39" width="40" height="10" rx="2" fill="#4a556a" filter="url(#sh2)" />
+          <circle cx="246" cy="49" r="4" fill="#2a3040" stroke="#1a2030" stroke-width="1.5" />
+          <circle cx="246" cy="49" r="1.5" fill="#4a556a" />
+          <circle cx="266" cy="49" r="4" fill="#2a3040" stroke="#1a2030" stroke-width="1.5" />
+          <circle cx="266" cy="49" r="1.5" fill="#4a556a" />
+          <!-- ===== BRIDGE GIRDERS ===== -->
+          <!-- Back girder (depth/perspective) -->
+          <rect x="38" y="42" width="224" height="12" fill="#9a7500" opacity="0.25" rx="1" />
+          <!-- Front girder - top flange -->
+          <rect x="30" y="52" width="240" height="4" rx="1" fill="#f5c518" />
+          <!-- Front girder - web -->
+          <rect x="32" y="56" width="236" height="20" rx="1" fill="url(#gY)" filter="url(#sh1)" />
+          <!-- Front girder - bottom flange -->
+          <rect x="30" y="76" width="240" height="4" rx="1" fill="#b07a05" />
+          <!-- Web stiffeners (vertical plates) -->
+          <rect x="60" y="58" width="1.5" height="16" fill="#c99a0a" opacity="0.35" />
+          <rect x="100" y="58" width="1.5" height="16" fill="#c99a0a" opacity="0.35" />
+          <rect x="140" y="58" width="1.5" height="16" fill="#c99a0a" opacity="0.35" />
+          <rect x="200" y="58" width="1.5" height="16" fill="#c99a0a" opacity="0.35" />
+          <rect x="240" y="58" width="1.5" height="16" fill="#c99a0a" opacity="0.35" />
+          <!-- Warning stripes on girder ends -->
+          <g opacity="0.2">
+            <rect x="34" y="72" width="14" height="3" fill="#111" />
+            <rect x="52" y="72" width="14" height="3" fill="#111" />
+            <rect x="234" y="72" width="14" height="3" fill="#111" />
+            <rect x="252" y="72" width="14" height="3" fill="#111" />
+          </g>
+          <!-- Brand on girder -->
+          <text x="150" y="70" text-anchor="middle" font-family="sans-serif" font-size="6" font-weight="bold" fill="#8a6500" letter-spacing="3" opacity="0.5">ESP32-S3 CONTROLLER</text>
+          <!-- Walkway railing -->
+          <line x1="35" y1="38" x2="265" y2="38" stroke="#e8a817" stroke-width="1.2" />
+          <line x1="35" y1="44" x2="265" y2="44" stroke="#c98a0a" stroke-width="0.6" />
+          <line x1="55" y1="38" x2="55" y2="52" stroke="#d4960f" stroke-width="0.8" />
+          <line x1="95" y1="38" x2="95" y2="52" stroke="#d4960f" stroke-width="0.8" />
+          <line x1="135" y1="38" x2="135" y2="52" stroke="#d4960f" stroke-width="0.8" />
+          <line x1="205" y1="38" x2="205" y2="52" stroke="#d4960f" stroke-width="0.8" />
+          <line x1="245" y1="38" x2="245" y2="52" stroke="#d4960f" stroke-width="0.8" />
+          <!-- Walkway deck -->
+          <rect x="30" y="49" width="240" height="3" fill="#c98a0a" opacity="0.3" />
+          <!-- Festoon cable catenary -->
+          <path d="M45,46 Q70,54 95,46 Q120,54 145,46 Q170,54 195,46" stroke="#1e2840" stroke-width="1" fill="none" opacity="0.4" />
+          <!-- ===== TROLLEY/HOIST ===== -->
+          <g filter="url(#sh1)">
+            <!-- Larger Trolley rail plate -->
+            <rect x="135" y="56" width="90" height="6" rx="1.5" fill="#3a4050" />
+            <!-- Larger Trolley body -->
+            <rect x="142" y="44" width="76" height="16" rx="4" fill="url(#gBl)" />
+            <!-- Larger Motor housing -->
+            <rect x="148" y="32" width="32" height="15" rx="4" fill="#3b82f6" />
+            <rect x="151" y="35" width="26" height="9" rx="2" fill="#2563eb" />
+            <!-- Motor cooling fins -->
+            <line x1="155" y1="35" x2="155" y2="44" stroke="#4a90d9" stroke-width="0.8" opacity="0.4" />
+            <line x1="159" y1="35" x2="159" y2="44" stroke="#4a90d9" stroke-width="0.8" opacity="0.4" />
+            <line x1="163" y1="35" x2="163" y2="44" stroke="#4a90d9" stroke-width="0.8" opacity="0.4" />
+            <line x1="167" y1="35" x2="167" y2="44" stroke="#4a90d9" stroke-width="0.8" opacity="0.4" />
+            <line x1="171" y1="35" x2="171" y2="44" stroke="#4a90d9" stroke-width="0.8" opacity="0.4" />
+            <!-- Enlarged Hoist drum -->
+            <ellipse cx="200" cy="44" rx="15" ry="11" fill="#1a3fa0" stroke="#152d80" stroke-width="1.2" />
+            <ellipse cx="200" cy="44" rx="9" ry="6" fill="none" stroke="#2563eb" stroke-width="0.8" opacity="0.4" />
+            <line x1="185" y1="44" x2="215" y2="44" stroke="#152d80" stroke-width="0.7" opacity="0.5" />
+            <!-- Larger Gearbox -->
+            <rect x="182" y="34" width="14" height="10" rx="2" fill="#2a4090" />
+            <!-- Trolley wheels -->
+            <circle cx="140" cy="56" r="3.5" fill="#333d4d" stroke="#2a3040" stroke-width="1.2" />
+            <circle cx="140" cy="56" r="1.2" fill="#555" />
+            <circle cx="220" cy="56" r="3.5" fill="#333d4d" stroke="#2a3040" stroke-width="1.2" />
+            <circle cx="220" cy="56" r="1.2" fill="#555" />
+          </g>
+
+          <!-- Main Hook -->
+          <g id="wireMain"><line x1="133" y1="61" x2="133" y2="121" stroke="#6a7588" stroke-width="0.8" /><line x1="142" y1="61" x2="142" y2="121" stroke="#7a8598" stroke-width="0.8" /></g>
+
+          <!-- ATP Display on Rope -->
+          <g transform="translate(137.5, 80)">
+            <rect x="-22" y="-14" width="44" height="28" rx="4" fill="url(#gY)" />
+            <rect x="-20" y="-12" width="40" height="24" rx="3" fill="url(#gScr)" stroke="#1a1a1a" stroke-width="1.2" />
+            <text y="-4" text-anchor="middle" font-family="monospace" font-size="5" fill="#ff4444" font-weight="bold">ATP</text>
+            <text y="7" text-anchor="middle" font-family="monospace" font-size="11" font-weight="800" id="svgAtp" fill="#e6a817" filter="url(#glow)">0.0°</text>
+          </g>
+
+          <g transform="translate(27.5, 0)">
+            <g id="mainHookGrp" style="transform: translateY(15px)">
+              <g filter="url(#sh2)">
+                <rect x="94" y="104" width="32" height="10" rx="2" fill="url(#gSt)" />
+                <circle cx="102" cy="109" r="3" fill="#2a3040" stroke="#3a4555" stroke-width="0.7" />
+                <circle cx="118" cy="109" r="3" fill="#2a3040" stroke="#3a4555" stroke-width="0.7" />
+                <!-- Massive Hook block body -->
+                <rect x="82" y="113" width="56" height="38" rx="5" fill="url(#gY)" />
+                <rect x="85" y="116" width="50" height="32" rx="3" fill="url(#gScr)" stroke="#1a1a1a" stroke-width="1.5" />
+                <text x="110" y="124" text-anchor="middle" font-family="monospace" font-size="7" fill="#00ff88"
+                  font-weight="bold" opacity="0.9">MAIN</text>
+                <text x="110" y="142" text-anchor="middle" font-family="monospace" font-size="14" font-weight="800"
+                  id="svgMain" fill="#e6a817" filter="url(#glow)">0.00 T</text>
+              </g>
+              <!-- Hook below enlarged block -->
+              <g transform="translate(0, 2)">
+                <!-- Tiered Swivel Assembly (Main) -->
+                <rect x="92" y="149" width="36" height="2.5" rx="1" fill="url(#gYt)" />
+                <rect x="96" y="151.5" width="28" height="5" fill="url(#gY)" stroke="#8a6000" stroke-width="0.2" />
+                <rect x="102" y="156.5" width="16" height="4" fill="url(#gY)" stroke="#8a6000" stroke-width="0.2" />
+                <rect x="107" y="160.5" width="6" height="3" fill="#111" />
+                <!-- New Ultra-Realistic Hook Design (Main) -->
+                <path
+                  d="M 271.5 -0.5 C 414.833 -0.5 558.167 -0.5 701.5 -0.5 C 688.671 5.32992 675.837 11.6633 663 18.5 C 662.084 39.5332 662.417 60.5332 664 81.5 C 699.949 101.138 735.116 121.972 769.5 144 C 918.385 252.35 979.552 398.183 953 581.5 C 934.896 668.704 896.896 745.704 839 812.5 C 743.363 914.042 625.529 962.209 485.5 957 C 361.617 947.873 258.117 897.706 175 806.5 C 110.995 730.533 77.662 642.533 75 542.5 C 73.9146 500.354 77.9146 458.687 87 417.5 C 99.2067 363.466 111.54 309.466 124 255.5 C 127.788 233.018 125.121 211.352 116 190.5 C 111.608 174.091 109.941 157.424 111 140.5 C 115.184 123.454 126.017 113.287 143.5 110 C 158.625 108.637 173.291 110.637 187.5 116 C 197.606 120.219 207.273 125.219 216.5 131 C 226.615 141.721 233.782 154.221 238 168.5 C 278.861 291.416 319.527 414.416 360 537.5 C 375.579 573.08 400.746 599.58 435.5 617 C 493.545 638.86 544.378 628.027 588 584.5 C 625.658 538.897 630.658 489.897 603 437.5 C 597.047 429.212 590.714 421.212 584 413.5 C 518.667 347.5 453.333 281.5 388 215.5 C 341.913 159.584 318.58 95.2507 318 22.5 C 302.322 14.9104 286.822 7.24374 271.5 -0.5 Z"
+                  fill="url(#gHk2)" stroke="#555" stroke-width="1.5"
+                  transform="translate(110, 161) scale(0.06) translate(-486, 0)" />
+              </g>
+            </g>
+          </g>
+
+          <!-- Aux Hook -->
+          <g id="wireAux"><line x1="220" y1="61" x2="220" y2="128" stroke="#6a7588" stroke-width="0.8" /><line x1="224" y1="61" x2="224" y2="128" stroke="#7a8598" stroke-width="0.8" /></g>
+          <g transform="translate(-2, 0)">
+            <g id="auxHookGrp" style="transform: translateY(15px)">
+              <g id="auxSheaveGrp">
+                <rect x="210" y="111" width="28" height="8" rx="2" fill="url(#gSt)" />
+                <circle cx="217" cy="115" r="2.5" fill="#2a3040" stroke="#3a4555" stroke-width="0.5" />
+                <circle cx="231" cy="115" r="2.5" fill="#2a3040" stroke="#3a4555" stroke-width="0.5" />
+              </g>
+              <!-- Massive Aux block body -->
+              <rect x="202" y="118" width="44" height="32" rx="4" fill="url(#gY)" />
+              <rect x="205" y="121" width="38" height="26" rx="2" fill="url(#gScr)" stroke="#1a1a1a" stroke-width="1" />
+              <text x="224" y="127" text-anchor="middle" font-family="monospace" font-size="5" fill="#60a5fa"
+                font-weight="bold" opacity="0.9">AUX</text>
+              <text x="224" y="141" text-anchor="middle" font-family="monospace" font-size="10" font-weight="800"
+                id="svgAux" fill="#e6a817" filter="url(#glow)">0.00 T</text>
+              <!-- Aux hook below block -->
+              <g transform="translate(0, -2)">
+                <!-- Tiered Swivel Assembly (Aux) -->
+                <rect x="210" y="150" width="28" height="2" rx="1" fill="url(#gYt)" />
+                <rect x="214" y="152" width="20" height="4" fill="url(#gY)" stroke="#8a6000" stroke-width="0.2" />
+                <rect x="218" y="156" width="12" height="3" fill="url(#gY)" stroke="#8a6000" stroke-width="0.2" />
+                <rect x="221" y="159" width="6" height="2" fill="#111" />
+                <!-- New Ultra-Realistic Hook Design (Aux) -->
+                <path
+                  d="M 271.5 -0.5 C 414.833 -0.5 558.167 -0.5 701.5 -0.5 C 688.671 5.32992 675.837 11.6633 663 18.5 C 662.084 39.5332 662.417 60.5332 664 81.5 C 699.949 101.138 735.116 121.972 769.5 144 C 918.385 252.35 979.552 398.183 953 581.5 C 934.896 668.704 896.896 745.704 839 812.5 C 743.363 914.042 625.529 962.209 485.5 957 C 361.617 947.873 258.117 897.706 175 806.5 C 110.995 730.533 77.662 642.533 75 542.5 C 73.9146 500.354 77.9146 458.687 87 417.5 C 99.2067 363.466 111.54 309.466 124 255.5 C 127.788 233.018 125.121 211.352 116 190.5 C 111.608 174.091 109.941 157.424 111 140.5 C 115.184 123.454 126.017 113.287 143.5 110 C 158.625 108.637 173.291 110.637 187.5 116 C 197.606 120.219 207.273 125.219 216.5 131 C 226.615 141.721 233.782 154.221 238 168.5 C 278.861 291.416 319.527 414.416 360 537.5 C 375.579 573.08 400.746 599.58 435.5 617 C 493.545 638.86 544.378 628.027 588 584.5 C 625.658 538.897 630.658 489.897 603 437.5 C 597.047 429.212 590.714 421.212 584 413.5 C 518.667 347.5 453.333 281.5 388 215.5 C 341.913 159.584 318.58 95.2507 318 22.5 C 302.322 14.9104 286.822 7.24374 271.5 -0.5 Z"
+                  fill="url(#gHk2)" stroke="#555" stroke-width="2.1"
+                  transform="translate(224, 160) scale(0.045) translate(-486, 0)" />
+              </g>
+            </g>
+          </g>
+
+          <rect x="10" y="413" width="280" height="2" fill="#1a2540" rx="1" />
+          <rect x="0" y="415" width="300" height="15" fill="rgba(12,16,24,.6)" />
+        </svg>
+      </div>
+
+      <div class="dp-gauge-wrap">
+        <svg viewBox="0 0 180 180" id="gaugeSvg">
+          <circle cx="90" cy="90" r="84" fill="none" stroke="#0f1520" stroke-width="1" />
+          <circle cx="90" cy="90" r="68" fill="none" stroke="#141c2d" stroke-width="12" />
+          <circle cx="90" cy="90" r="68" fill="none" stroke="#00ff88" stroke-width="12" stroke-dasharray="427.3" stroke-dashoffset="427.3" stroke-linecap="round" transform="rotate(-90 90 90)" id="gaugeArc" />
+          <circle cx="90" cy="90" r="52" fill="#0c1018" stroke="#141c2d" stroke-width="1" />
+          <text x="90" y="78" text-anchor="middle" font-family="'Courier New',monospace" font-size="36" font-weight="bold" id="gaugeVal" fill="#e6a817">0.00</text>
+          <text x="90" y="100" text-anchor="middle" font-size="14" fill="#8b949e" font-weight="600">tons</text>
+          <text x="90" y="130" text-anchor="middle" font-size="12" fill="#e6a817" font-weight="700" id="gaugeMax">-- T</text>
+        </svg>
+        <div class="dp-gauge-label">Main Hook Weight</div>
+        <div class="dp-gauge-max" id="dpGaugeMaxLabel">MAX -- tons</div>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <div class="dp-cards">
+
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const api = async url => { try { const r = await fetch(url); return await r.text(); } catch(e) { return null; } };
+
+    let hook='main', raw=0, clickCount=0;
+    function dpShowSettings(){ $('dpPwInput').value=''; $('dpPwModal').classList.add('show'); $('dpPwInput').focus(); }
+    function dpClosePw(){ $('dpPwModal').classList.remove('show'); }
+    function dpCheckPw(){ if($('dpPwInput').value==='1234'){ dpClosePw(); window.location.href='/settings'; } else { $('dpPwErr').style.display='block'; } }
+    function secret(){ clickCount++; if(clickCount===5){ window.location.href='/settings'; clickCount=0; } }
+
+    function updateGauge(val, max) {
+      let pct = max > 0 ? Math.min(val / max * 100, 100) : 0;
+      let arc = $('gaugeArc');
+      arc.setAttribute('stroke-dashoffset', 427.3 * (1 - pct/100));
+      // Color changes based on load
+      let col;
+      if (pct < 60) col = '#00ff88';
+      else if (pct < 80) col = '#f59e0b';
+      else if (pct < 95) col = '#f97316';
+      else col = '#ff4444';
+      arc.setAttribute('stroke', col);
+      $('gaugeVal').textContent = val.toFixed(2);
+      $('gaugeVal').setAttribute('fill', pct >= 95 ? '#ff4444' : '#e6a817');
+      $('gaugeMax').textContent = max > 0 ? max + ' T' : '-- T';
+      $('dpGaugeMaxLabel').textContent = max > 0 ? 'MAX ' + max + ' tons' : 'MAX -- tons';
+    }
+    function updateRing(id, pct, txtId) {
+      let el = $(id); if(!el) return;
+      el.setAttribute('stroke-dashoffset', 88 - 88 * Math.min(pct,100)/100);
+      el.setAttribute('stroke', pct < 85 ? (id==='ringMain'?'#00ff88':'#60a5fa') : '#ff4444');
+      if($(txtId)) $(txtId).textContent = Math.round(pct) + '%';
+      let grp = id==='ringMain'?$('mainHookGrp'):$('auxHookGrp'), wires = id==='ringMain'?$('wireMain'):$('wireAux');
+      let offset = (pct/100)*40;
+      if(grp) grp.style.transform = `translateY(${15 + offset}px)`;
+      if(wires) Array.from(wires.getElementsByTagName('line')).forEach(l => l.setAttribute('y2', (id==='ringMain'?121:128)+offset));
+    }
+
+    let dpMainCap=0, dpAuxCap=0, dpMainEn=false, dpAuxEn=false;
+    async function dpTick() {
+      const res = await api('/liveWeight');
+      if(res) {
+        const w = JSON.parse(res);
+        if($('dpMain')) $('dpMain').innerHTML = Number(w.main).toFixed(2) + ' <span>tons</span>';
+        $('svgMain').textContent = Number(w.main).toFixed(2) + ' T';
+        if($('svgAux')) $('svgAux').textContent = Number(w.aux).toFixed(2) + ' T';
+        
+        let total = Number(w.total), max = (dpMainEn?dpMainCap:0) + (dpAuxEn?dpAuxCap:0);
+        updateGauge(total, max);
+        updateRing('ringMain', dpMainCap>0?(w.main/dpMainCap*100):0, 'ringMainTxt');
+        if($('ringAux')) updateRing('ringAux', dpAuxCap>0?(w.aux/dpAuxCap*100):0, 'ringAuxTxt');
+        
+        $('dpDcOverlay').classList.remove('show');
+      } else {
+        if($('dpDcOverlay')) $('dpDcOverlay').classList.add('show');
+      }
+    }
+    async function loadConfigs() {
+      const m = JSON.parse(await api('/getMainConfig') || '{}'); dpMainCap = m.capacity||0; dpMainEn = !!m.enable;
+      const a = JSON.parse(await api('/getAuxConfig') || '{}'); dpAuxCap = a.capacity||0; dpAuxEn = !!a.enable;
+      $('dpGaugeMaxLabel').textContent = 'MAX ' + ((dpMainEn?dpMainCap:0)+(dpAuxEn?dpAuxCap:0)) + ' tons';
+    }
+
+    setInterval(dpTick, 800);
+    loadConfigs();
+    
+    function dpClock() { 
+      let d=new Date(), h=String(d.getHours()).padStart(2,'0'), m=String(d.getMinutes()).padStart(2,'0'), s=String(d.getSeconds()).padStart(2,'0'); 
+      let mn=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']; 
+      $('dpClk').textContent=h+':'+m+':'+s; $('dpDate').textContent=mn[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();
+    }
+    dpClock(); setInterval(dpClock, 1000);
+  </script>
+</body>
+</html>
